@@ -44,6 +44,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.R
 import com.example.ui.theme.YtRed
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -195,9 +201,10 @@ private fun performGoogleSignIn(
   onCancelled: () -> Unit,
   scope: kotlinx.coroutines.CoroutineScope
 ) {
-  val clientId = try {
-    activity.getString(R.string.default_web_client_id)
-  } catch (e: Exception) {
+  val resId = activity.resources.getIdentifier("default_web_client_id", "string", activity.packageName)
+  val clientId = if (resId != 0) {
+    activity.getString(resId)
+  } else {
     onError("Google Sign-In configuration missing in google-services.json")
     return
   }

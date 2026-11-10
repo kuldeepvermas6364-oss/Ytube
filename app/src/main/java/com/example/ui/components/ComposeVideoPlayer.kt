@@ -106,7 +106,7 @@ fun ComposeVideoPlayer(
               </head>
               <body>
                 <iframe 
-                  src="https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1" 
+                  src="https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&origin=https://www.youtube.com&widget_referrer=https://www.youtube.com" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowfullscreen>
                 </iframe>
@@ -132,7 +132,7 @@ fun ComposeVideoPlayer(
               </head>
               <body>
                 <iframe 
-                  src="https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1" 
+                  src="https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&origin=https://www.youtube.com&widget_referrer=https://www.youtube.com" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowfullscreen>
                 </iframe>
