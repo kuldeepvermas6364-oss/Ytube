@@ -90,7 +90,21 @@ fun ComposeVideoPlayer(
               mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
               userAgentString = "Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
             }
-            webViewClient = WebViewClient()
+            webViewClient = object : WebViewClient() {
+              override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                val url = request?.url?.toString() ?: return false
+                if (url.contains("youtube.com/watch") || url.contains("youtu.be")) {
+                  return try {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                    ctx.startActivity(intent)
+                    true
+                  } catch (e: Exception) {
+                    false
+                  }
+                }
+                return false
+              }
+            }
             webChromeClient = android.webkit.WebChromeClient()
             
             val videoId = video.videoId
@@ -106,14 +120,14 @@ fun ComposeVideoPlayer(
               </head>
               <body>
                 <iframe 
-                  src="https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&origin=https://www.youtube.com&widget_referrer=https://www.youtube.com" 
+                  src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowfullscreen>
                 </iframe>
               </body>
               </html>
             """.trimIndent()
-            loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null)
+            loadDataWithBaseURL("https://www.youtube-nocookie.com", html, "text/html", "utf-8", null)
           }
         },
         update = { webView ->
@@ -132,14 +146,14 @@ fun ComposeVideoPlayer(
               </head>
               <body>
                 <iframe 
-                  src="https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&origin=https://www.youtube.com&widget_referrer=https://www.youtube.com" 
+                  src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowfullscreen>
                 </iframe>
               </body>
               </html>
             """.trimIndent()
-            webView.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null)
+            webView.loadDataWithBaseURL("https://www.youtube-nocookie.com", html, "text/html", "utf-8", null)
           }
         },
         modifier = Modifier.fillMaxSize()
