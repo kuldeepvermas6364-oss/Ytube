@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User channel and account information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "channelName": { "type": "string" },
+        "handle": { "type": "string" },
+        "subscribersCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "displayName", "email"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "YouTube video or Cloudinary uploaded video record",
+      "type": "object",
+      "properties": {
+        "videoId": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "isCloudinary": { "type": "boolean" },
+        "isShort": { "type": "boolean" },
+        "category": { "type": "string" },
+        "viewsCount": { "type": "integer" },
+        "likesCount": { "type": "integer" },
+        "commentsCount": { "type": "integer" },
+        "channelName": { "type": "string" },
+        "channelAvatarUrl": { "type": "string" },
+        "duration": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["videoId", "userId", "title", "videoUrl"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "User comment on a video",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string" },
+        "videoId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userAvatarUrl": { "type": "string" },
+        "text": { "type": "string" },
+        "likesCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commentId", "videoId", "userId", "userName", "text"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "User channel subscription link",
+      "type": "object",
+      "properties": {
+        "subId": { "type": "string" },
+        "subscriberUid": { "type": "string" },
+        "channelId": { "type": "string" },
+        "channelName": { "type": "string" },
+        "channelAvatarUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["subId", "subscriberUid", "channelId"]
+    },
+    "VideoLike": {
+      "title": "Video Like",
+      "description": "Like record on a video",
+      "type": "object",
+      "properties": {
+        "likeId": { "type": "string" },
+        "userId": { "type": "string" },
+        "videoId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["likeId", "userId", "videoId"]
+    },
+    "WatchHistory": {
+      "title": "Watch History",
+      "description": "User video watch history item",
+      "type": "object",
+      "properties": {
+        "historyId": { "type": "string" },
+        "userId": { "type": "string" },
+        "videoId": { "type": "string" },
+        "title": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "channelName": { "type": "string" },
+        "watchedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["historyId", "userId", "videoId", "title"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection"
+    },
+    "/videos/{videoId}": {
+      "schema": "Video",
+      "description": "Videos and Shorts collection"
+    },
+    "/videos/{videoId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments under a video"
+    },
+    "/subscriptions/{subId}": {
+      "schema": "Subscription",
+      "description": "User subscriptions collection"
+    },
+    "/likes/{likeId}": {
+      "schema": "VideoLike",
+      "description": "Video likes collection"
+    },
+    "/history/{historyId}": {
+      "schema": "WatchHistory",
+      "description": "User watch history collection"
+    }
+  }
+}

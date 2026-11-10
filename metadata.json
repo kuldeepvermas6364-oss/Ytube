@@ -1,0 +1,6 @@
+{
+  "name": "YouTube",
+  "description": "Full featured YouTube Clone app with YouTube Data API v3, Firebase Firestore & Auth, Cloudinary video upload, Shorts feed, and player.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

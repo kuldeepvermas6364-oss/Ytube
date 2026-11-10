@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // User Profile Validation
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.email is string && data.email.size() <= 200 &&
+             (!('photoUrl' in data) || data.photoUrl == null || (data.photoUrl is string && data.photoUrl.size() <= 1000)) &&
+             (!('channelName' in data) || data.channelName == null || (data.channelName is string && data.channelName.size() <= 100)) &&
+             (!('handle' in data) || data.handle == null || (data.handle is string && data.handle.size() <= 100)) &&
+             (!('subscribersCount' in data) || data.subscribersCount is int);
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && request.auth.uid == userId && incoming().userId == existing().userId && isValidUserProfile(incoming());
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Video & Shorts Validation
+    function isValidVideo(data) {
+      return data.videoId is string && data.videoId.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() <= 300 &&
+             data.videoUrl is string && data.videoUrl.size() <= 1000 &&
+             (!('description' in data) || data.description == null || (data.description is string && data.description.size() <= 2000)) &&
+             (!('thumbnailUrl' in data) || data.thumbnailUrl == null || (data.thumbnailUrl is string && data.thumbnailUrl.size() <= 1000)) &&
+             (!('isCloudinary' in data) || data.isCloudinary is bool) &&
+             (!('isShort' in data) || data.isShort is bool) &&
+             (!('category' in data) || data.category == null || (data.category is string && data.category.size() <= 100)) &&
+             (!('viewsCount' in data) || data.viewsCount is int) &&
+             (!('likesCount' in data) || data.likesCount is int) &&
+             (!('commentsCount' in data) || data.commentsCount is int) &&
+             (!('channelName' in data) || data.channelName == null || (data.channelName is string && data.channelName.size() <= 100)) &&
+             (!('channelAvatarUrl' in data) || data.channelAvatarUrl == null || (data.channelAvatarUrl is string && data.channelAvatarUrl.size() <= 1000)) &&
+             (!('duration' in data) || data.duration == null || (data.duration is string && data.duration.size() <= 50));
+    }
+
+    match /videos/{videoId} {
+      allow get, list: if true; // Public video feed
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidVideo(incoming());
+      allow update: if isSignedIn() && (
+        (existing().userId == request.auth.uid && isValidVideo(incoming())) ||
+        // Allow view/like/comment counter increment by any signed in user
+        (incoming().diff(existing()).affectedKeys().hasOnly(['viewsCount', 'likesCount', 'commentsCount']) && isValidVideo(incoming()))
+      );
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+
+      // Video Comments Subcollection
+      function isValidComment(data) {
+        return data.commentId is string && data.commentId.size() <= 128 &&
+               data.videoId is string && data.videoId == videoId &&
+               data.userId is string && data.userId == request.auth.uid &&
+               data.userName is string && data.userName.size() <= 100 &&
+               data.text is string && data.text.size() <= 1000 &&
+               (!('userAvatarUrl' in data) || data.userAvatarUrl == null || (data.userAvatarUrl is string && data.userAvatarUrl.size() <= 1000)) &&
+               (!('likesCount' in data) || data.likesCount is int);
+      }
+
+      match /comments/{commentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && isValidComment(incoming());
+        allow update: if isSignedIn() && (
+          (existing().userId == request.auth.uid && isValidComment(incoming())) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) && isValidComment(incoming()))
+        );
+        allow delete: if isSignedIn() && (existing().userId == request.auth.uid || get(/databases/$(database)/documents/videos/$(videoId)).data.userId == request.auth.uid);
+      }
+    }
+
+    // Subscriptions Validation
+    function isValidSubscription(data) {
+      return data.subId is string && data.subId.size() <= 128 &&
+             data.subscriberUid is string && data.subscriberUid == request.auth.uid &&
+             data.channelId is string && data.channelId.size() <= 128 &&
+             (!('channelName' in data) || data.channelName == null || (data.channelName is string && data.channelName.size() <= 100)) &&
+             (!('channelAvatarUrl' in data) || data.channelAvatarUrl == null || (data.channelAvatarUrl is string && data.channelAvatarUrl.size() <= 1000));
+    }
+
+    match /subscriptions/{subId} {
+      allow get, list: if isSignedIn() && resource.data.subscriberUid == request.auth.uid;
+      allow create: if isSignedIn() && isValidSubscription(incoming());
+      allow update: if isSignedIn() && existing().subscriberUid == request.auth.uid && isValidSubscription(incoming());
+      allow delete: if isSignedIn() && existing().subscriberUid == request.auth.uid;
+    }
+
+    // Likes Validation
+    function isValidVideoLike(data) {
+      return data.likeId is string && data.likeId.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.videoId is string && data.videoId.size() <= 128;
+    }
+
+    match /likes/{likeId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidVideoLike(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Watch History Validation
+    function isValidWatchHistory(data) {
+      return data.historyId is string && data.historyId.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.videoId is string && data.videoId.size() <= 128 &&
+             data.title is string && data.title.size() <= 300 &&
+             (!('thumbnailUrl' in data) || data.thumbnailUrl == null || (data.thumbnailUrl is string && data.thumbnailUrl.size() <= 1000)) &&
+             (!('channelName' in data) || data.channelName == null || (data.channelName is string && data.channelName.size() <= 100));
+    }
+
+    match /history/{historyId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidWatchHistory(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid && isValidWatchHistory(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}
