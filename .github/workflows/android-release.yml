@@ -28,8 +28,10 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Gradle
+      - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
 
       - name: Validate signing secrets
         env:
@@ -57,15 +59,12 @@ jobs:
             printf 'YOUTUBE_API=%s\n' "$YOUTUBE_API_VALUE" > .env
           fi
 
-      - name: Grant Gradle wrapper permission
-        run: chmod +x ./gradlew
-
       - name: Build signed Release APK
         env:
           STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
 
       - name: Verify and prepare APK
         id: apk
